@@ -9,16 +9,7 @@ df <- read_csv('https://github.com/tliptrot/ML-repression-study/blob/main/arabba
 # the x variables get simple new names
 # the y variables all start with y
 
-a <- c(1,2)
-b <- c(3,4)
 
-ti <- tibble(a,b)
-
-for (i in seq_along(ti)) {
-  ti[[i]] <- ti[[i]]*2
-  }
-
-ti
 
 
 dfjo <- df %>%
