@@ -70,14 +70,13 @@ dfjo <- df %>%
 write.csv(dfjo, 'arabbaro_jo_labeled.csv')
 
 #dfjo_trans is just like dfjo but with all other variables dropped
-dfjo <- df %>%
+dfjo_trans <- df %>%
+  filter(Q1001C < 5, Q1003 <10, Q409 < 10) %>%
   filter(country == 8) %>%
-  mutate(y = Q201A_1 %in% c(3,4),
-         medinc = Q1015A_JO == 2,
-         lowinc = Q1015B_JO,
-         highinc = Q1015C_JO,
-         remit = Q1017,
-         hijab = Q1010C,
+  mutate(below_medinc = Q1015A_JO == 1,
+         above_medinc = Q1015A_JO == 2,
+#         remit = Q1017,
+#         hijab = Q1010C,
          married = Q1010==4,
          employed = Q1005==1,
          employed_pub_sec = Q1005==1&Q1006A==1,
@@ -87,17 +86,19 @@ dfjo <- df %>%
          housewife = Q1005==4,
          student = Q1005==5,
          unemp = Q1005==6,
-         neighbrich = Q1001C,
-         educ = Q1003,
-         male = Q1002,
+         neighb_rich = Q1001C==1,
+         neighb_poor = Q1001C==2,
+         neighb_mixed = Q1001C==3,
+         educ = ifelse(Q1003<8,(7-Q1003)/6,0),
+         male = Q1002==1,
          age = Q1001,
          orgmem = (Q501==1|Q501A==1),
-         charity = Q266,
-         petit = Q502_1,
-         protest = Q502_2,
-         polviol = Q502_4,
-         campaign_attend = Q302,
-         parlvote_nas_not_asked_1_is_yes = Q301A, 
+#         charity = Q266,
+#         petit = Q502_1,
+#         protest = Q502_2,
+#         polviol = Q502_4,
+#         campaign_attend = Q302,
+#         parlvote_nas_not_asked_1_is_yes = Q301A, 
          locvote= Q301C==1,
          #returns TRUE if uses iternet
          internet = Q409 < 6,
@@ -113,25 +114,35 @@ dfjo <- df %>%
          infs_radio = (Q421==4),
          infs_television = (Q421==5),
          infs_socmed = (Q421==6),
-         joorpal = Q1020JO,
+         country_of_origin_jordan = Q1020JO==1,
          y_dem_top_issue = Q2061A==3,
          y_dem_pref = Q516A==3,
-         y_dem_pref_not_in_dem = (Q516A==3 & Q511<6 & Q511 != 99 ),
-         y_trust_gov = Q201A_1 %in% c(3,4),
-         y_trust_army = Q201B_6 %in% c(3,4),
-         y_trust_pres_prime = Q201B_31 %in% c(3,4),
-         y_trust_ikhwan = Q201B_12 %in% c(3,4))
+         y_2_dem_pref_not_in_dem = (Q516A==3 & Q511<6 & Q511 != 99 ),
+         y_1_trust_gov = Q201A_1 %in% c(1,2),
+         y_trust_army = Q201B_6 %in% c(1,2),
+         y_trust_pres_prime = Q201B_31 %in% c(1,2),
+         y_trust_ikhwan = Q201B_12 %in% c(1,2),
+         .keep = "none")
+
+
 write.csv(dfjo_trans, 'arabbaro_jo_labeled_reduced.csv')
 
+options(max.print=10000)
+
+count(dfjo_trans, internet)
+
+sum(is.na(dfjo_trans$age))
+
+?count()
+
 transmog <- function(df, country_num) {
-  df <- df %>%
-    filter(country == country_num) %>%
-    mutate(y = Q201A_1 %in% c(3,4),
-           medinc = Q1015A_JO == 2,
-           lowinc = Q1015B_JO,
-           highinc = Q1015C_JO,
-           remit = Q1017,
-           hijab = Q1010C,
+  dfjo_trans <- df %>%
+    filter(Q1001C < 5, Q1003 <10, Q409 < 10) %>%
+    filter(country == 8) %>%
+    mutate(below_medinc = Q1015A_JO == 1,
+           above_medinc = Q1015A_JO == 2,
+           #         remit = Q1017,
+           #         hijab = Q1010C,
            married = Q1010==4,
            employed = Q1005==1,
            employed_pub_sec = Q1005==1&Q1006A==1,
@@ -141,17 +152,19 @@ transmog <- function(df, country_num) {
            housewife = Q1005==4,
            student = Q1005==5,
            unemp = Q1005==6,
-           neighbrich = Q1001C,
-           educ = Q1003,
-           male = Q1002,
+           neighb_rich = Q1001C==1,
+           neighb_poor = Q1001C==2,
+           neighb_mixed = Q1001C==3,
+           educ = ifelse(Q1003<8,(7-Q1003)/6,0),
+           male = Q1002==1,
            age = Q1001,
            orgmem = (Q501==1|Q501A==1),
-           charity = Q266,
-           petit = Q502_1,
-           protest = Q502_2,
-           polviol = Q502_4,
-           campaign_attend = Q302,
-           parlvote_nas_not_asked_1_is_yes = Q301A, 
+           #         charity = Q266,
+           #         petit = Q502_1,
+           #         protest = Q502_2,
+           #         polviol = Q502_4,
+           #         campaign_attend = Q302,
+           #         parlvote_nas_not_asked_1_is_yes = Q301A, 
            locvote= Q301C==1,
            #returns TRUE if uses iternet
            internet = Q409 < 6,
@@ -167,15 +180,16 @@ transmog <- function(df, country_num) {
            infs_radio = (Q421==4),
            infs_television = (Q421==5),
            infs_socmed = (Q421==6),
+#           country_of_origin_jordan = Q1020JO==1,
            y_dem_top_issue = Q2061A==3,
            y_dem_pref = Q516A==3,
-           y_dem_pref_not_in_dem = (Q516A==3 & Q511<6 & Q511 != 99 ),
-           y_trust_gov = Q201A_1 %in% c(3,4),
-           y_trust_army = Q201B_6 %in% c(3,4),
-           y_trust_pres_prime = Q201B_31 %in% c(3,4),
-           y_trust_ikhwan = Q201B_12 %in% c(3,4),
-           .keep = "none"
-           )
+           y_2_dem_pref_not_in_dem = (Q516A==3 & Q511<6 & Q511 != 99 ),
+           y_1_trust_gov = Q201A_1 %in% c(1,2),
+           y_trust_army = Q201B_6 %in% c(1,2),
+           y_trust_pres_prime = Q201B_31 %in% c(1,2),
+           y_trust_ikhwan = Q201B_12 %in% c(1,2),
+           .keep = "none")
+  
 return(df)
 }
 
@@ -185,7 +199,7 @@ write.csv(df_alg, 'arabbaro_alg_labeled_reduced.csv')
 df_egy <- transmog(df, 5)
 write.csv(df_egy, 'arabbaro_egy_labeled_reduced.csv')
 
-df_iraq <- transmog(df, 1)
+df_iraq <- transmog(df, 7)
 write.csv(df_iraq, 'arabbaro_iraq_labeled_reduced.csv')
 
 df_kuw <- transmog(df, 1)
