@@ -129,16 +129,16 @@ write.csv(dfjo_trans, 'arabbaro_jo_labeled_reduced.csv')
 
 options(max.print=10000)
 
-count(dfjo_trans, internet)
+count(df, Q302)
 
 sum(is.na(dfjo_trans$age))
 
 ?count()
 
 transmog <- function(df, country_num) {
-  dfjo_trans <- df %>%
+df <- df %>%
     filter(Q1001C < 5, Q1003 <10, Q409 < 10) %>%
-    filter(country == 8) %>%
+    filter(country == country_num) %>%
     mutate(below_medinc = Q1015A_JO == 1,
            above_medinc = Q1015A_JO == 2,
            #         remit = Q1017,
@@ -202,23 +202,28 @@ write.csv(df_egy, 'arabbaro_egy_labeled_reduced.csv')
 df_iraq <- transmog(df, 7)
 write.csv(df_iraq, 'arabbaro_iraq_labeled_reduced.csv')
 
-df_kuw <- transmog(df, 1)
+df_kuw <- transmog(df, 9)
 write.csv(df_kuw, 'arabbaro_kuw_labeled_reduced.csv')
 
-df_leb <- transmog(df, 1)
+df_leb <- transmog(df, 10)
 write.csv(df_leb, 'arabbaro_leb_labeled_reduced.csv')
 
-df_mor <- transmog(df, 1)
+df_mor <- transmog(df, 13)
 write.csv(df_mor, 'arabbaro_mor_labeled_reduced.csv')
 
-df_pal <- transmog(df, 1)
+df_pal <- transmog(df, 15)
 write.csv(df_pal, 'arabbaro_pal_labeled_reduced.csv')
 
-df_sud <- transmog(df, 1)
+df_sud <- transmog(df, 19)
 write.csv(df_sud, 'arabbaro_sud_labeled_reduced.csv')
 
-df_tun <- transmog(df, 1)
+df_tun <- transmog(df, 21)
 write.csv(df_tun, 'arabbaro_tun_labeled_reduced.csv')
 
-df_yem <- transmog(df, 1)
+df_yem <- transmog(df, 22)
 write.csv(df_yem, 'arabbaro_yem_labeled_reduced.csv')
+
+
+table(df_mor$infs_radio,df_mor$y_2_dem_pref_not_in_dem)
+
+?table()
