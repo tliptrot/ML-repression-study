@@ -1,0 +1,45 @@
+observations predicted about state behavior
+
+- go further into social media data
+- not use it to discriminate
+
+people could mask their behavior. if on asurvey they say pro-regime things, thenthey also do pro-regime things 
+
+So I could split the part about digital repression off
+
+Take that paper
+- random forests
+- go to modern applications (those dealing with most citizens, discrimination in hiring, internet shutdowns)
+- talk about viability for repression
+- this means revolutions are more likely because digital repression only effective gainst elites
+
+
+Far out paper
+- predictability of future repression
+
+Go for World Politics
+
+xu xu 
+
+https://xu-xu.net/
+
+email paper to Ning Leng
+
+Split into two papers
+
+Technical side
++ deals with non-elite applications
++ hiring, minor repression, internet shutdowns
++ require predicting non-elite preferences
++ argue this will be very difficult for the state
+
+Digital repression in general
++ digital repression
++ think about lighter tough
++ can it be used for political terror?
++ two translators both speaking about covid responses. They never said anything about the government just the covid response. And  the state interpreted that as dissent and imprisoned them. And people tolerate that.
+
+Mistakes
+- didn't explain that the survey approximates data the government could collect
+
+
