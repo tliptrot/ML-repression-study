@@ -23,3 +23,5 @@ alg_sav <- filter(df_sav, country==1)
 
 count(alg_sav, Q511)
 alg_sav$Q201A_41
+
+count
