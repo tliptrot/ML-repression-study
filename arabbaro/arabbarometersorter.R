@@ -2,14 +2,25 @@
 
 #clears list
 rm(list = ls())
-
-#creates country csv's for the classification project
 library(tidyverse)
-df <- read_csv('https://github.com/tliptrot/ML-repression-study/blob/main/arabbaro/ABV_Release_Data.csv?raw=true')
 
-#creates a tibble called dfjo which has the following properties
-# the x variables get simple new names
-# the y variables all start with y
+#creates df_sav and consolidates income 
+
+#what if I first used a sav file, then I transform all the income ones to their value, with NAs as 0. Then I could just change transmog a little bit. 
+library(sjlabelled)
+library(gsub)
+help("as_factor")
+
+df <- read_sav("ABV_Release_Data.sav")
+
+inc_names <- variable.names(df)[grepl("^Q1015C|^Q1015B",variable.names(df))]
+
+df_sav <- df %>%
+  mutate(across(inc_names, ~ as.numeric(gsub("[^0-9.]","",gsub(".*-","",gsub('\\.','',gsub('>','',gsub('<','',sjlabelled::as_character(.x))))))))) %>%
+  select(inc_names) %>%
+  mutate(income=rowSums(.,na.rm=TRUE))
+
+df$income <- df_sav$income
 
 # Creates capitals list
 capitals <- c(80005,130004,10016,210001,50001,100005,90001,220007,190007,150013,70001)
@@ -18,10 +29,9 @@ capitals <- c(80005,130004,10016,210001,50001,100005,90001,220007,190007,150013,
 
 #dfjo_trans is just like dfjo but with all other variables dropped
 dfjo_trans <- df %>%
-  filter(Q1001C < 5, Q1003 <10, Q409 < 10) %>%
-  filter(country == 8) %>%
-  mutate(below_medinc = Q1015A_JO == 1,
-         above_medinc = Q1015A_JO == 2,
+  dplyr:::filter_rows(Q1001C < 5, Q1003 <10, Q409 < 10,Q266<10) %>%
+  dplyr:::filter_rows(country == 8) %>%
+  mutate(income = income,
 #         remit = Q1017,
 #         hijab = Q1010C,
          in_capital = Q1001A %in% capitals,
@@ -51,7 +61,7 @@ dfjo_trans <- df %>%
          #returns TRUE if uses iternet
          internet = Q409 < 6,
          #1-5, where 1 is using internet most often
-         internet_use_ordinal_4_is_top = ifelse(Q409<6,6-Q409,0),
+#         internet_use_ordinal_4_is_top = ifelse(Q409<6,6-Q409,0),
          internet_use_bin = ifelse(Q409<6,(6-Q409)/5,0),
          #1-5, where 5 is using 10 hours or more a day
 #         socmed_use_ordinal = ifelse(Q424>10|is.na(Q424),0,Q424-1),
@@ -66,9 +76,9 @@ dfjo_trans <- df %>%
          y_dem_top_issue = Q2061A==3,
          y_dem_pref = Q516A==3,
          y_2_dem_pref_not_in_dem = (Q516A==3 & Q511<6 & Q511 != 99 ),
-         y_1_trust_gov = Q201A_1 %in% c(1,2),
-         y_trust_army = Q201B_6 %in% c(1,2),
-         y_trust_pres_prime = Q201B_31 %in% c(1,2),
+         y_1_distrust_gov = Q201A_1 %in% c(3,4),
+         y_distrust_army = Q201B_6 %in% c(3,4),
+         y_distrust_pres_prime = Q201B_31 %in% c(3,4),
          y_trust_ikhwan = Q201B_12 %in% c(1,2),
          .keep = "none")
 
@@ -94,10 +104,9 @@ df$Q1015A <- rowSums(df[,c("Q1015A_PAL", "Q1015A_EG", "Q1015A_KU", "Q1015A_JO", 
 
 transmog <- function(df, country_num) {
 df <- df %>%
-    filter(Q1001C < 5, Q1003 <10, Q409 < 10) %>%
+    filter(Q1001C < 5, Q1003 <10, Q409 < 10, Q266<10) %>%
     filter(country == country_num) %>%
-    mutate(below_medinc = Q1015A == 1,
-           above_medinc = Q1015A == 2,
+    mutate(income = income,
            #         remit = Q1017,
            #         hijab = Q1010C,
            in_capital = Q1001A %in% capitals,
@@ -117,11 +126,11 @@ df <- df %>%
            male = Q1002==1,
            age = Q1001,
            orgmem = (Q501==1|Q501A==1),
-           #         charity = Q266,
-           #         petit = Q502_1,
-           #         protest = Q502_2,
+           charity = Q266==1,
+           petit = ifelse(Q502_1==2,1,ifelse(Q502_1==1,.5,0)),
+           protest = ifelse(Q502_2==2,1,ifelse(Q502_2==1,.5,0)),
            #         polviol = Q502_4,
-           #         campaign_attend = Q302,
+           campaign_attend = (Q302==1),
            #         parlvote_nas_not_asked_1_is_yes = Q301A, 
            locvote= Q301C==1,
            #returns TRUE if uses iternet
@@ -142,9 +151,9 @@ df <- df %>%
            y_dem_top_issue = Q2061A==3,
            y_dem_pref = Q516A==3,
            y_2_dem_pref_not_in_dem = (Q516A==3 & Q511<6 & Q511 != 99 ),
-           y_1_trust_gov = Q201A_1 %in% c(1,2),
-           y_trust_army = Q201B_6 %in% c(1,2),
-           y_trust_pres_prime = Q201B_31 %in% c(1,2),
+           y_1_distrust_gov = Q201A_1 %in% c(3,4),
+           y_distrust_army = Q201B_6 %in% c(3,4),
+           y_distrust_pres_prime = Q201B_31 %in% c(3,4),
            y_trust_ikhwan = Q201B_12 %in% c(1,2),
            .keep = "none")
   
@@ -152,6 +161,7 @@ return(df)
 }
 
 df_alg <- transmog(df, 1)
+df_alg <- subset(df_alg, select = -income)
 write.csv(df_alg, 'arabbaro_alg_labeled_reduced.csv')
 
 df_egy <- transmog(df, 5)
@@ -161,6 +171,7 @@ df_leb <- transmog(df, 10)
 write.csv(df_leb, 'arabbaro_leb_labeled_reduced.csv')
 
 df_mor <- transmog(df, 13)
+df_mor <- subset(df_mor, select = -income)
 write.csv(df_mor, 'arabbaro_mor_labeled_reduced.csv')
 
 df_pal <- transmog(df, 15)
@@ -178,7 +189,7 @@ write.csv(df_yem, 'arabbaro_yem_labeled_reduced.csv')
 # code for kuwait
 
 df_kuw <- df %>%
-    filter(Q1003 <10, Q409 < 10) %>%
+    filter(Q1003 <10, Q409 < 10, Q266<10) %>%
     filter(country == 9) %>%
     mutate(below_medinc = Q1015A == 1,
            above_medinc = Q1015A == 2,
@@ -201,11 +212,11 @@ df_kuw <- df %>%
            male = Q1002==1,
            age = Q1001,
            orgmem = (Q501==1|Q501A==1),
-           #         charity = Q266,
-           #         petit = Q502_1,
-           #         protest = Q502_2,
+           charity = Q266==1,
+#           petit = ifelse(Q502_1==2,1,ifelse(Q502_1==1,.5,0)),
+#           protest = ifelse(Q502_2==2,1,ifelse(Q502_2==1,.5,0)),
            #         polviol = Q502_4,
-           #         campaign_attend = Q302,
+           campaign_attend = (Q302==1),
            #         parlvote_nas_not_asked_1_is_yes = Q301A, 
            locvote= Q301C==1,
            #returns TRUE if uses iternet
@@ -226,9 +237,9 @@ df_kuw <- df %>%
            y_dem_top_issue = Q2061A==3,
            y_dem_pref = Q516A==3,
 #           y_2_dem_pref_not_in_dem = (Q516A==3 & Q511<6 & Q511 != 99 ),
-           y_1_trust_gov = Q201A_1 %in% c(1,2),
-           y_trust_army = Q201B_6 %in% c(1,2),
-           y_trust_pres_prime = Q201B_31 %in% c(1,2),
+           y_1_distrust_gov = Q201A_1 %in% c(3,4),
+           y_distrust_army = Q201B_6 %in% c(3,4),
+           y_distrust_pres_prime = Q201B_31 %in% c(3,4),
            y_trust_ikhwan = Q201B_12 %in% c(1,2),
            .keep = "none")
 
@@ -243,6 +254,7 @@ write.csv(df_kuw, 'arabbaro_kuw_labeled_reduced.csv')
 df_iraq <- transmog(df, 7)
 
 #spss type file
+library(haven)
 df_sav <- read_sav("ABV_Release_Data.sav")
 
 #stata iraq
@@ -258,6 +270,22 @@ df_iraq$above_medinc <- iraq_sav$above_medinc
 
 count(iraq_sav, Q1015A_IR)
 
+
+
+typeof()
+
 write.csv(df_iraq, 'arabbaro_iraq_labeled_reduced.csv')
+
+# scraps to get the income into a nice spot
+
+egy_sav <- filter(df, country==5)
+
+count(mor_sav,Q511)
+
+count(df_egy,protest)
+
+tcount(jor_sav,Q511)
+
+
 
 

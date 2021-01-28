@@ -24,4 +24,9 @@ alg_sav <- filter(df_sav, country==1)
 count(alg_sav, Q511)
 alg_sav$Q201A_41
 
-count
+df <- read_sav("ABV_Release_Data.sav")
+
+view(df %>% group_by(country) %>%
+  count(Q302))
+
+(224+121)/(224+121+2005+12+26)
