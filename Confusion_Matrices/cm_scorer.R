@@ -2,17 +2,94 @@
 
 library(plyr)
 library(readr)
+library(tidyverse)
 
 setwd("~/GitHub/ML-repression-study/Confusion_Matrices")
 
 mydir = "Confusion_Martices"
 
-myfiles = list.files(pattern="*.csv", full.names=TRUE)
+
+#makes my df for .25 subset
+myfiles25 = list.files(pattern="*.25.csv", full.names=TRUE)
+myfiles25
+
+labs <- c()
+
+for (i in 1:length(myfiles25)) {
+  
+  labs[(2*i-1)] <- myfiles25[i]
+  
+  labs[(2*i)] <- myfiles25[i]
+
+}
+#labels each row with the original file name
+df25 = ldply(myfiles25, read_csv, .id=labs)
+df25$cm <- labs
+
+#collapses each cm into one line
+
+country <- c('Algeria','Egypt','Egypt','Jordan','Jordan','Kuwait','Morocco','Morocco')
+y_var <- c('DemPref','DemPref','TrustGov','DemPref','TrustGov','TrustGov', 'DemPref','TrustGov')
+
+df <- tibble(country,y_var)
+
+for (i in 1:length(myfiles25)) {
+  df$AFPF[i] <- df25[4*i-1,2]
+  df$AFPT[i] <- df25[4*i-1,3]
+  df$ATPF[i] <- df25[4*i,2]
+  df$ATPT[i] <- df25[4*i,3]
+  df$L_AFPF[i] <- df25[4*i-3,2]
+  df$L_AFPT[i] <- df25[4*i-3,3]
+  df$L_ATPF[i] <- df25[4*i-2,2]
+  df$L_ATPT[i] <- df25[4*i-2,3]
+}
+
+df25_fin <- df
+
+#Same but for 75
+
+#makes my df for .25 subset
+myfiles75 = list.files(pattern="*.75.csv", full.names=TRUE)
+myfiles75
+
+labs <- c()
+
+for (i in 1:length(myfiles75)) {
+  
+  labs[(2*i-1)] <- myfiles75[i]
+  
+  labs[(2*i)] <- myfiles75[i]
+  
+}
+#labels each row with the original file name
+df75 = ldply(myfiles75, read_csv, .id=labs)
+df75$cm <- labs
+
+#collapses each cm into one line
+
+country <- c('Algeria','Egypt','Egypt','Jordan','Jordan','Kuwait','Morocco','Morocco')
+y_var <- c('DemPref','DemPref','TrustGov','DemPref','TrustGov','TrustGov', 'DemPref','TrustGov')
+
+df <- tibble(country,y_var)
+
+df
+
+for (i in 1:length(myfiles75)) {
+  df$AFPF[i] <- df75[4*i-1,2]
+  df$AFPT[i] <- df75[4*i-1,3]
+  df$ATPF[i] <- df75[4*i,2]
+  df$ATPT[i] <- df75[4*i,3]
+  df$L_AFPF[i] <- df75[4*i-3,2]
+  df$L_AFPT[i] <- df75[4*i-3,3]
+  df$L_ATPF[i] <- df75[4*i-2,2]
+  df$L_ATPT[i] <- df75[4*i-2,3]
+}
+
+df75_fin <- df
+
+#makes my df for .25 subset
+myfiles = list.files(pattern="*(t|F).csv", full.names=TRUE)
 myfiles
-
-dat_csv = ldply(myfiles, read_csv, .id=labs)
-
-
 
 labs <- c()
 
@@ -21,8 +98,98 @@ for (i in 1:length(myfiles)) {
   labs[(2*i-1)] <- myfiles[i]
   
   labs[(2*i)] <- myfiles[i]
-
+  
 }
+#labels each row with the original file name
+df1 = ldply(myfiles, read_csv, .id=labs)
+df1$cm <- labs
+
+#collapses each cm into one line
+
+country <- c('Algeria','Egypt','Egypt','Jordan','Jordan','Kuwait','Morocco','Morocco')
+y_var <- c('DemPref','DemPref','TrustGov','DemPref','TrustGov','TrustGov', 'DemPref','TrustGov')
+
+df <- tibble(country,y_var)
+
+df
+
+for (i in 1:length(myfiles)) {
+  df$AFPF[i] <- df1[4*i-1,2]
+  df$AFPT[i] <- df1[4*i-1,3]
+  df$ATPF[i] <- df1[4*i,2]
+  df$ATPT[i] <- df1[4*i,3]
+  df$L_AFPF[i] <- df1[4*i-3,2]
+  df$L_AFPT[i] <- df1[4*i-3,3]
+  df$L_ATPF[i] <- df1[4*i-2,2]
+  df$L_ATPT[i] <- df1[4*i-2,3]
+}
+
+nothresh <- df
+
+#Great, now time to score them all
+
+#nothresh <- 
+nothresh_pol <- nothresh %>%
+  arrange(y_var,country) %>%
+  mutate(True = ATPF + ATPT,
+         False = AFPF + AFPT,
+         True_Frac = (True/(True+False))*100,
+         Max = True,
+         Min = -1*False,
+         BaseRate = ifelse(True_Frac>50, True-False, 0),
+         Logit = L_ATPT - L_AFPT,
+         RF = ATPT - AFPT) %>%
+  select(country,y_var,True,False,True_Frac,Max,BaseRate,Logit,RF)
+         
+# threshold 25
+
+df75_pol <- df75_fin %>%
+  group_by(y_var) %>%
+  arrange(y_var,country,.by_group=TRUE) %>%
+  mutate(True = ATPF + ATPT,
+         False = AFPF + AFPT,
+         True_Frac = (True/(True+False))*100,
+         Max = True,
+         Min = -1*False,
+         BaseRate = ifelse(True_Frac>75, True-3*False, 0),
+         Logit = L_ATPT - 3*L_AFPT,
+         RF = ATPT - 3*AFPT) %>%
+  select(country,y_var,True,False,True_Frac,Max,BaseRate,Logit,RF)
+
+#df25_pol <- 
+df25_pol <- df25_fin %>%
+  group_by(y_var) %>%
+  arrange(y_var,country,.by_group=TRUE) %>%
+#  arrange(y_var) %>%
+  mutate(True = ATPF + ATPT,
+         False = AFPF + AFPT,
+         True_Frac = (True/(True+False))*100,
+         Max = True,
+         Min = -1*False,
+         BaseRate = ifelse(True_Frac>25, True-(False/3), 0),
+         Logit = L_ATPT - L_AFPT/3,
+         RF = ATPT - AFPT/3) %>%
+  select(country,y_var,True,False,True_Frac,Max,BaseRate,Logit,RF)
+
+
+library(xtable)
+
+xtable(nothresh_pol, type="latex")
+
+
+
+
+help(mutate)
+
+
+
+
+
+
+
+
+
+
 
 dat_csv$cm <- labs
 
