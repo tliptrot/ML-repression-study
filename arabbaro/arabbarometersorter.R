@@ -9,7 +9,7 @@ library(tidyverse)
 #what if I first used a sav file, then I transform all the income ones to their value, with NAs as 0. Then I could just change transmog a little bit. 
 library(sjlabelled)
 library(gsub)
-help("as_factor")
+library(haven)
 
 df <- read_sav("ABV_Release_Data.sav")
 
@@ -25,12 +25,15 @@ df$income <- df_sav$income
 # Creates capitals list
 capitals <- c(80005,130004,10016,210001,50001,100005,90001,220007,190007,150013,70001)
 
-
-
+df_csv <- read.csv("GitHub/ML-repression-study/arabbaro/ABV_Release_Data.csv")
+library(tidyverse)
 #dfjo_trans is just like dfjo but with all other variables dropped
+
 dfjo_trans <- df %>%
-  dplyr:::filter_rows(Q1001C < 5, Q1003 <10, Q409 < 10,Q266<10) %>%
-  dplyr:::filter_rows(country == 8) %>%
+  dplyr:::filter(Q1001C < 5, Q1003 <10, Q409 < 10,Q266<10) %>%
+  dplyr:::filter(country == 8) %>%
+  #  dplyr:::filter_rows(Q1001C < 5, Q1003 <10, Q409 < 10,Q266<10) %>%
+#  dplyr:::filter_rows(country == 8) #%>%
   mutate(income = income,
 #         remit = Q1017,
 #         hijab = Q1010C,
@@ -51,11 +54,11 @@ dfjo_trans <- df %>%
          male = Q1002==1,
          age = Q1001,
          orgmem = (Q501==1|Q501A==1),
-#         charity = Q266,
-#         petit = Q502_1,
-#         protest = Q502_2,
+         charity = Q266,
+         petit = Q502_1,
+         protest = Q502_2,
 #         polviol = Q502_4,
-#         campaign_attend = Q302,
+         campaign_attend = Q302,
 #         parlvote_nas_not_asked_1_is_yes = Q301A, 
          locvote= Q301C==1,
          #returns TRUE if uses iternet
@@ -65,7 +68,7 @@ dfjo_trans <- df %>%
          internet_use_bin = ifelse(Q409<6,(6-Q409)/5,0),
          #1-5, where 5 is using 10 hours or more a day
 #         socmed_use_ordinal = ifelse(Q424>10|is.na(Q424),0,Q424-1),
-#         socmed_use_bin = socmed_use_ordinal/4,
+         socmed_use_bin = ifelse(Q424>10|is.na(Q424),0,Q424-1)/4,
 #         socmed_use_dummy = socmed_use_bin > 0,
          infs_face2face_tel = (Q421 %in% c(1,2)),
          infs_newspaper = (Q421 == 3),
@@ -73,6 +76,13 @@ dfjo_trans <- df %>%
          infs_television = (Q421==5),
          infs_socmed = (Q421==6),
          country_of_origin_jordan = Q1020JO==1,
+         user_facebook = Q412A3==1,
+         user_twitter = Q412A4==1,
+         user_instagram = Q412A6==1,
+         user_youtube = Q412A7==1,
+         user_whatsapp = Q412A8==1,
+         user_telegram = Q412A9==1,
+         user_snapchat = Q412A10==1,
          y_dem_top_issue = Q2061A==3,
          y_dem_pref = Q516A==3,
          y_2_dem_pref_not_in_dem = (Q516A==3 & Q511<6 & Q511 != 99 ),
@@ -82,8 +92,11 @@ dfjo_trans <- df %>%
          y_trust_ikhwan = Q201B_12 %in% c(1,2),
          .keep = "none")
 
-
 write.csv(dfjo_trans, 'arabbaro_jo_labeled_reduced.csv')
+
+count(dfjo_trans, infs_face2face_tel)
+
+dfjo_trans$infs_face2face_tel
 
 #options(max.print=10000)
 
@@ -140,7 +153,7 @@ df <- df %>%
            internet_use_bin = ifelse(Q409<6,(6-Q409)/5,0),
            #1-5, where 5 is using 10 hours or more a day
 #           socmed_use_ordinal = ifelse(Q424>10|is.na(Q424),0,Q424-1),
-#           socmed_use_bin = socmed_use_ordinal/4,
+           socmed_use_bin = ifelse(Q424>10|is.na(Q424),0,Q424-1)/4,
 #           socmed_use_dummy = socmed_use_bin > 0,
            infs_face2face_tel = (Q421 %in% c(1,2)),
            infs_newspaper = (Q421 == 3),
@@ -148,6 +161,13 @@ df <- df %>%
            infs_television = (Q421==5),
            infs_socmed = (Q421==6),
 #           country_of_origin_jordan = Q1020JO==1,
+user_facebook = Q412A3==1,
+user_twitter = Q412A4==1,
+user_instagram = Q412A6==1,
+user_youtube = Q412A7==1,
+user_whatsapp = Q412A8==1,
+user_telegram = Q412A9==1,
+user_snapchat = Q412A10 == 1,
            y_dem_top_issue = Q2061A==3,
            y_dem_pref = Q516A==3,
            y_2_dem_pref_not_in_dem = (Q516A==3 & Q511<6 & Q511 != 99 ),
@@ -161,6 +181,9 @@ return(df)
 }
 
 df_alg <- transmog(df, 1)
+
+
+
 df_alg <- subset(df_alg, select = -income)
 write.csv(df_alg, 'arabbaro_alg_labeled_reduced.csv')
 
@@ -225,8 +248,8 @@ df_kuw <- df %>%
            #           internet_use_ordinal_4_is_top = ifelse(Q409<6,6-Q409,0),
            internet_use_bin = ifelse(Q409<6,(6-Q409)/5,0),
            #1-5, where 5 is using 10 hours or more a day
-           #           socmed_use_ordinal = ifelse(Q424>10|is.na(Q424),0,Q424-1),
-           #           socmed_use_bin = socmed_use_ordinal/4,
+#           socmed_use_ordinal = ifelse(Q424>10|is.na(Q424),0,Q424-1),
+           socmed_use_bin = ifelse(Q424>10|is.na(Q424),0,Q424-1)/4,
            #           socmed_use_dummy = socmed_use_bin > 0,
            infs_face2face_tel = (Q421 %in% c(1,2)),
            infs_newspaper = (Q421 == 3),
@@ -234,6 +257,13 @@ df_kuw <- df %>%
            infs_television = (Q421==5),
            infs_socmed = (Q421==6),
            #           country_of_origin_jordan = Q1020JO==1,
+user_facebook = Q412A3==1,
+user_twitter = Q412A4==1,
+user_instagram = Q412A6==1,
+user_youtube = Q412A7==1,
+user_whatsapp = Q412A8==1,
+user_telegram = Q412A9==1,
+user_snapchat = Q412A10 == 1,
            y_dem_top_issue = Q2061A==3,
            y_dem_pref = Q516A==3,
 #           y_2_dem_pref_not_in_dem = (Q516A==3 & Q511<6 & Q511 != 99 ),
@@ -243,9 +273,7 @@ df_kuw <- df %>%
            y_trust_ikhwan = Q201B_12 %in% c(1,2),
            .keep = "none")
 
-count(df_kuw, y_2_dem_pref_not_in_dem)
-
-
+count(df_kuw, socmed_use_ordinal)
 
 write.csv(df_kuw, 'arabbaro_kuw_labeled_reduced.csv')
 
