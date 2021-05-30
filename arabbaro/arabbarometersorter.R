@@ -90,11 +90,13 @@ dfjo_trans <- df %>%
          y_distrust_army = Q201B_6 %in% c(3,4),
          y_distrust_pres_prime = Q201B_31 %in% c(3,4),
          y_trust_ikhwan = Q201B_12 %in% c(1,2),
-         .keep = "none")
+         .keep = "none") %>%
+  mutate_at(vars(contains('user')), funs(replace_na(., 0)))
+
 
 write.csv(dfjo_trans, 'arabbaro_jo_labeled_reduced.csv')
 
-count(dfjo_trans, infs_face2face_tel)
+count(dfjo_trans, user_whatsapp)
 
 dfjo_trans$infs_face2face_tel
 
@@ -175,7 +177,8 @@ user_snapchat = Q412A10 == 1,
            y_distrust_army = Q201B_6 %in% c(3,4),
            y_distrust_pres_prime = Q201B_31 %in% c(3,4),
            y_trust_ikhwan = Q201B_12 %in% c(1,2),
-           .keep = "none")
+           .keep = "none") %>%
+  mutate_at(vars(contains('user')), funs(replace_na(., 0)))
   
 return(df)
 }
@@ -271,7 +274,8 @@ user_snapchat = Q412A10 == 1,
            y_distrust_army = Q201B_6 %in% c(3,4),
            y_distrust_pres_prime = Q201B_31 %in% c(3,4),
            y_trust_ikhwan = Q201B_12 %in% c(1,2),
-           .keep = "none")
+           .keep = "none") %>%
+  mutate_at(vars(contains('user')), funs(replace_na(., 0)))
 
 count(df_kuw, socmed_use_ordinal)
 
@@ -308,11 +312,11 @@ write.csv(df_iraq, 'arabbaro_iraq_labeled_reduced.csv')
 
 egy_sav <- filter(df, country==5)
 
-count(mor_sav,Q511)
+#count(mor_sav,Q511)
 
 count(df_egy,protest)
 
-tcount(jor_sav,Q511)
+#tcount(jor_sav,Q511)
 
 
 
